@@ -1,0 +1,40 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+dist/
+build/
+
+# Pulumi
+.Pulumi/
+__pycache__/
+*.bak
+*.tmp
+Pulumi.*.yaml.backup
+Pulumi.*.json
+
+# Logs
+*.log
+logs/
+*.out
+
+# Env files
+.env
+.env.*
+*.secret
+secrets.json
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker
+*.tar
+docker-save/
+docker-cache/
+
+# Kubernetes
+*.kubeconfig
