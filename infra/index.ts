@@ -5,25 +5,24 @@ import * as pg from "@pulumi/azure-native/dbforpostgresql";
 // Configuracion base
 const config = new pulumi.Config();
 const location = config.require("location");
-const resourceGroupName = "rg-aks-demo";
 const clientConfig = pulumi.output(azure.authorization.getClientConfig());
 
-// Resource Group
+// Resource Group (DEBE SER ORIGEN DE TODAS LAS REFERENCIAS)
 const rg = new azure.resources.ResourceGroup("rg", {
-    resourceGroupName,
+    resourceGroupName: "rg-aks-demo",
     location,
 });
 
 // VNet
 const vnet = new azure.network.VirtualNetwork("vnet", {
-    resourceGroupName,
+    resourceGroupName: rg.name,
     location,
     addressSpace: { addressPrefixes: ["10.0.0.0/16"] },
 });
 
 // Subnet AKS
 const subnetAks = new azure.network.Subnet("subnet-aks", {
-    resourceGroupName,
+    resourceGroupName: rg.name,
     virtualNetworkName: vnet.name,
     addressPrefix: "10.0.1.0/24",
     delegations: [{
@@ -33,18 +32,18 @@ const subnetAks = new azure.network.Subnet("subnet-aks", {
 });
 
 // ACR
-const acrName = "acrdemo" + pulumi.getStack();   // 5+ chars, único por stack
+const acrName = "acrdemo" + pulumi.getStack();
 const acr = new azure.containerregistry.Registry("acr", {
-    resourceGroupName,
+    resourceGroupName: rg.name,
     location,
     registryName: acrName,
     sku: { name: "Basic" },
-    adminUserEnabled: false, // seguro
+    adminUserEnabled: false,
 });
 
 // PostgreSQL Single Server
 const db = new pg.Server("pg", {
-    resourceGroupName,
+    resourceGroupName: rg.name,
     location,
     serverName: "pgdemo",
     version: "11",
@@ -58,7 +57,7 @@ const db = new pg.Server("pg", {
 
 // AKS Cluster
 const aks = new azure.containerservice.ManagedCluster("aks", {
-    resourceGroupName,
+    resourceGroupName: rg.name,
     location,
     dnsPrefix: "aksdemo",
     identity: { type: "SystemAssigned" },
@@ -75,13 +74,15 @@ const aks = new azure.containerservice.ManagedCluster("aks", {
     },
 });
 
-// Identidad del kubelet (no tipada en ManagedCluster)
-const kubeletObjectId = pulumi.output(aks).apply((cluster: any) =>
-    cluster.identityProfile?.kubeletidentity?.objectId ?? cluster.identity?.principalId ?? "",
-);
-
-// Permitir que AKS lea imagenes del ACR
-const roleAssignment = new azure.authorization.RoleAssignment("aks-acr-role", {
+// Identidad del kubelet
+const kubeletObjectId = pulumi
+    .all([aks.identityProfile, aks.identity])
+    .apply(([profile, identity]) =>
+    profile?.["kubeletidentity"]?.objectId ?? identity?.principalId ?? ""
+    );
+    
+    // Role Assignment AKS → ACR
+    const roleAssignment = new azure.authorization.RoleAssignment("aks-acr-role", {
     principalId: kubeletObjectId,
     principalType: "ServicePrincipal",
     scope: acr.id,
