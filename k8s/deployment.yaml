@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: api-app
-          image: acr794095.azurecr.io/api:1.0.0
+          image: acrdemodev.azurecr.io/appdemo:v1
           ports:
             - containerPort: 3000
           env:
@@ -25,13 +25,13 @@ spec:
                   key: DB_PASSWORD
 
             - name: DB_HOST
-              value: "pgdemo.postgres.database.azure.com"
+              value: "pgserver-aks-demo-001.postgres.database.azure.com"
 
             - name: DB_USER
-              value: "adminpg@pgdemo"
+              value: "pgadmin"
 
             - name: DB_NAME
-              value: "appdb"
+              value: "postgres"
 
             - name: DB_PORT
               value: "5432"
