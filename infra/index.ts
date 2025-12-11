@@ -77,6 +77,8 @@ const aks = new azure.containerservice.ManagedCluster("aks", {
     networkProfile: {
         networkPlugin: "azure",
         loadBalancerSku: "standard",
+        serviceCidr: "10.1.0.0/16",           // Agregado: no debe solaparse con VNet
+        dnsServiceIP: "10.1.0.10",            // Agregado: debe estar dentro de serviceCidr
     },
 });
 
