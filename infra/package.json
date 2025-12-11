@@ -4,14 +4,16 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "up": "pulumi up",
+    "preview": "pulumi preview"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@pulumi/azure-native": "^3.11.0",
+    "@pulumi/azure-native": "3.11.0",
     "@pulumi/pulumi": "^3.210.0"
   },
   "devDependencies": {
