@@ -40,10 +40,9 @@ const acr = new azure.containerregistry.Registry("acr", {
 });
 
 // PostgreSQL Flexible Server
-// PostgreSQL Flexible Server
 const pg = new db.Server("pgserver", {
     resourceGroupName: rg.name,
-    location: "eastus2",  
+    location: "eastus2",
     serverName: "pgserver-aks-demo-001",
     version: "13",
 
@@ -57,8 +56,22 @@ const pg = new db.Server("pgserver", {
 
     storage: {
         storageSizeGB: 32,
-    }
+    },
 
+    network: {
+        publicNetworkAccess: "Enabled"
+    },
+});
+
+// FIX: regla de firewall separada → esto sí es válido
+const allowAzure = new db.FirewallRule("allowAzure", {
+    firewallRuleName: "AllowAllAzure",
+    serverName: pg.name,
+    resourceGroupName: rg.name,
+
+    // 0.0.0.0 es “Allow Azure Services” para PostgreSQL Flexible Server
+    startIpAddress: "0.0.0.0",
+    endIpAddress: "0.0.0.0",
 });
 
 // AKS Cluster
