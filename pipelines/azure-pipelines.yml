@@ -5,30 +5,18 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  ACR_NAME: "<your_acr>"
-  IMAGE_NAME: "app"
+  ACR_NAME: aksdemoacr       # nombre real
+  IMAGE_NAME: api
+  DOCKERFILE_PATH: app/Dockerfile
+  IMAGE_TAG: $(Build.BuildId)
 
 steps:
-- checkout: self
-
-- task: DockerInstaller@0
-
-- script: |
-    echo "Login ACR"
-    az acr login --name $(ACR_NAME)
-  displayName: "Login ACR"
-
-- script: |
-    docker build -t $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.BuildId) .
-    docker push $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.BuildId)
-  displayName: "Build & Push"
-
-- task: KubernetesManifest@1
+- task: AzureCLI@2
   inputs:
-    action: deploy
-    manifests: |
-      k8s/deployment.yaml
-      k8s/service.yaml
-      k8s/ingress.yaml
-    containers: |
-      $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.BuildId)
+    azureSubscription: 'MyServiceConnection'   # tu service connection
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az acr login -n $ACR_NAME
+      docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG -f $DOCKERFILE_PATH ./app
+      docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG

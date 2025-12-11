@@ -14,12 +14,31 @@ spec:
     spec:
       containers:
         - name: api-app
-          image: <ACR>.azurecr.io/api:latest
+          image: aksdemoacr.azurecr.io/api:latest
           ports:
             - containerPort: 3000
           env:
-            - name: DATABASE_URL
-              value: "postgres://admin:SuperPass123!@pg:5432/db"
+            # Password desde Secret
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: DB_PASSWORD
+
+            # Variables explícitas
+            - name: DB_HOST
+              value: "pgdemo.postgres.database.azure.com"
+
+            - name: DB_USER
+              value: "adminpg@pgdemo"
+
+            - name: DB_NAME
+              value: "appdb"
+
+            # Opcional: puerto
+            - name: DB_PORT
+              value: "5432"
+
           resources:
             requests:
               cpu: "100m"
@@ -27,4 +46,3 @@ spec:
             limits:
               cpu: "500m"
               memory: "256Mi"
-
