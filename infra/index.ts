@@ -21,14 +21,10 @@ const vnet = new azure.network.VirtualNetwork("vnet", {
 });
 
 // Subnet AKS
-const subnetAks = new azure.network.Subnet("subnet-aks", {
+const subnetAks = new azure.network.Subnet("subnet-aks-demo", {
     resourceGroupName: rg.name,
     virtualNetworkName: vnet.name,
-    addressPrefix: "10.0.1.0/24",
-    delegations: [{
-        name: "aks-delegation",
-        serviceName: "Microsoft.ContainerService/managedClusters",
-    }],
+    addressPrefix: "10.0.2.0/24",
     privateEndpointNetworkPolicies: "Disabled",
     privateLinkServiceNetworkPolicies: "Disabled",
 }, { dependsOn: [vnet] });
@@ -47,8 +43,8 @@ const acr = new azure.containerregistry.Registry("acr", {
 // PostgreSQL Flexible Server
 const pg = new db.Server("pgserver", {
     resourceGroupName: rg.name,
-    location,
-    serverName: "pgserver",
+    location: "eastus2",  
+    serverName: "pgserver-aks-demo-001",
     version: "13",
 
     sku: {
