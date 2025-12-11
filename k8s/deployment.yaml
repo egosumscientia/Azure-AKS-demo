@@ -14,18 +14,16 @@ spec:
     spec:
       containers:
         - name: api-app
-          image: aksdemoacr.azurecr.io/api:latest
+          image: acr794095.azurecr.io/api:1.0.0
           ports:
             - containerPort: 3000
           env:
-            # Password desde Secret
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: db-secret
                   key: DB_PASSWORD
 
-            # Variables explícitas
             - name: DB_HOST
               value: "pgdemo.postgres.database.azure.com"
 
@@ -35,7 +33,6 @@ spec:
             - name: DB_NAME
               value: "appdb"
 
-            # Opcional: puerto
             - name: DB_PORT
               value: "5432"
 
