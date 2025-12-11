@@ -4,7 +4,7 @@ import * as pg from "@pulumi/azure-native/dbforpostgresql";
 
 // Configuracion base
 const config = new pulumi.Config();
-const location = config.require("azure-native:location");
+const location = config.require("location");
 const resourceGroupName = "rg-aks-demo";
 const clientConfig = pulumi.output(azure.authorization.getClientConfig());
 
@@ -32,19 +32,14 @@ const subnetAks = new azure.network.Subnet("subnet-aks", {
     }],
 });
 
-// Subnet DB
-const subnetDb = new azure.network.Subnet("subnet-db", {
-    resourceGroupName,
-    virtualNetworkName: vnet.name,
-    addressPrefix: "10.0.2.0/24",
-});
-
 // ACR
+const acrName = "acrdemo" + pulumi.getStack();   // 5+ chars, único por stack
 const acr = new azure.containerregistry.Registry("acr", {
     resourceGroupName,
     location,
+    registryName: acrName,
     sku: { name: "Basic" },
-    adminUserEnabled: true,
+    adminUserEnabled: false, // seguro
 });
 
 // PostgreSQL Single Server
@@ -54,7 +49,7 @@ const db = new pg.Server("pg", {
     serverName: "pgdemo",
     version: "11",
     administratorLogin: "adminpg",
-    administratorLoginPassword: "SuperPass123!",
+    administratorLoginPassword: config.requireSecret("dbPassword"),
     sku: {
         name: "B_Gen5_1",
         tier: "Basic",

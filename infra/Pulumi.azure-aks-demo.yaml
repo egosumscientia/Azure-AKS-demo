@@ -1,0 +1,4 @@
+config:
+  dbPassword:
+    secure: AAABAPozdV4eweA9cVp8RAt0BAABE5hrJIZDJyJE9jBoLlQFWbMvPg5pZ2K/
+  azure-native:location: eastus

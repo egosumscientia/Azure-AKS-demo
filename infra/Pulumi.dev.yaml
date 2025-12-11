@@ -1,2 +1,4 @@
 config:
-  azure-native:location: eastus
+  azure-aks-demo:dbPassword:
+    secure: AAABAHCjknqLeK6kdoKAAkTUFmth1o3nHsynpaWKDYjwtQEEEiYXgrQXZNX9
+  azure-aks-demo:location: eastus
