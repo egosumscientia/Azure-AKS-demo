@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as azure from "@pulumi/azure-native";
-import * as pgflex from "@pulumi/azure-native/dbforpostgresqlflexibleservers";
+import * as db from "@pulumi/azure-native/dbforpostgresql";
 import * as resources from "@pulumi/azure-native/resources";
 
 const config = new pulumi.Config();
@@ -27,9 +27,7 @@ const subnetAks = new azure.network.Subnet("subnet-aks", {
     addressPrefix: "10.0.1.0/24",
     delegations: [{
         name: "aks-delegation",
-        properties: {
-            serviceName: "Microsoft.ContainerService/managedClusters",
-        },
+        serviceName: "Microsoft.ContainerService/managedClusters",
     }],
     privateEndpointNetworkPolicies: "Disabled",
     privateLinkServiceNetworkPolicies: "Disabled",
@@ -46,21 +44,25 @@ const acr = new azure.containerregistry.Registry("acr", {
 });
 
 // PostgreSQL Flexible Server
-const db = new pgflex.FlexibleServer("pg", {
+// PostgreSQL Flexible Server
+const pg = new db.Server("pgserver", {
     resourceGroupName: rg.name,
     location,
-    serverName: "pgdemo",
+    serverName: "pgserver",
     version: "13",
-    administratorLogin: "adminpg",
-    administratorLoginPassword: config.requireSecret("dbPassword"),
+
     sku: {
-        name: "Standard_B1ms",
-        tier: "Burstable",
+        name: "Standard_D2ds_v4",
+        tier: "GeneralPurpose",
     },
+
+    administratorLogin: "pgadmin",
+    administratorLoginPassword: "SuperPassword123!",
+
     storage: {
-        autoGrow: "Enabled",
         storageSizeGB: 32,
-    },
+    }
+
 });
 
 // AKS Cluster
@@ -97,7 +99,13 @@ const roleAssignment = new azure.authorization.RoleAssignment("aks-acr-role", {
     roleDefinitionId: pulumi.interpolate`/subscriptions/${clientConfig.subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7`,
 });
 
+// Obtener FQDN del servidor PostgreSQL
+const pgInfo = db.getServerOutput({
+    resourceGroupName: rg.name,
+    serverName: pg.name,
+});
+
 // Outputs
 export const acrLogin = acr.loginServer;
 export const aksName = aks.name;
-export const dbHost = db.fullyQualifiedDomainName;
+export const dbHost = pgInfo.fullyQualifiedDomainName;
